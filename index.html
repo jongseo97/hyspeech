@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK하이닉스 HySpeech - AI 발표 분석 서비스</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 1rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.2rem;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: white;
+            padding: 2rem;
+            margin-top: 80px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            margin-top: 80px;
+        }
+
+        .setting-group {
+            margin-bottom: 2rem;
+        }
+
+        .setting-group h3 {
+            color: #1e3a8a;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .radio-item:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+
+        .radio-item.selected {
+            border-color: #1e3a8a;
+            background: #eff6ff;
+        }
+
+        .radio-item input[type="radio"] {
+            accent-color: #1e3a8a;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+
+        .checkbox-item.checked {
+            border-color: #1e3a8a;
+            background: #eff6ff;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            accent-color: #1e3a8a;
+            transform: scale(1.1);
+        }
+
+        .execute-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .execute-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+        }
+
+        .execute-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .upload-area {
+            background: white;
+            border: 3px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+
+        .upload-area.dragover {
+            border-color: #1e3a8a;
+            background: #eff6ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .uploaded-file {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #0c4a6e;
+        }
+
+        .file-size {
+            color: #0369a1;
+            font-size: 0.9rem;
+        }
+
+        .results-area {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .feedback-result {
+            display: none;
+        }
+
+        .feedback-result.show {
+            display: block;
+        }
+
+        .feedback-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .feedback-title {
+            color: #1e3a8a;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+        }
+
+        .feedback-content {
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .score-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .score-item {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
+        .score-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #1e3a8a);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SK하이닉스 HySpeech</h1>
+        <div class="subtitle">Multimodal LLM 기반 AI 발표 분석 서비스</div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="setting-group">
+                <h3>청중 선택</h3>
+                <div class="radio-group">
+                    <div class="radio-item selected">
+                        <input type="radio" id="team" name="audience" value="team" checked>
+                        <label for="team">팀원</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="executive" name="audience" value="executive">
+                        <label for="executive">임원</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="member" name="audience" value="member">
+                        <label for="member">멤버사</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="client" name="audience" value="client">
+                        <label for="client">고객사</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>보안 설정</h3>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="security" name="security">
+                    <label for="security">보안 모드 활성화</label>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>분석 옵션</h3>
+                <div class="checkbox-item checked">
+                    <input type="checkbox" id="voice" name="voice" checked>
+                    <label for="voice">음성 분석</label>
+                </div>
+                <div class="checkbox-item checked">
+                    <input type="checkbox" id="gesture" name="gesture" checked>
+                    <label for="gesture">제스처 분석</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="slide" name="slide">
+                    <label for="slide">슬라이드 분석</label>
+                </div>
+            </div>
+
+            <button class="execute-btn" onclick="startAnalysis()">피드백 실행하기</button>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📹</div>
+                <div class="upload-text">발표 영상을 업로드하세요</div>
+                <div class="upload-subtext">MP4, MOV, AVI 파일을 지원합니다 (최대 500MB)</div>
+                <input type="file" id="fileInput" accept="video/*" style="display: none;">
+            </div>
+
+            <div class="uploaded-file hidden" id="uploadedFile">
+                <div class="file-info">
+                    <div class="file-name" id="fileName"></div>
+                    <div class="file-size" id="fileSize"></div>
+                </div>
+                <button onclick="removeFile()">❌</button>
+            </div>
+
+            <div class="results-area">
+                <div id="initialState">
+                    <h2 style="color: #1e3a8a; margin-bottom: 1rem;">AI 발표 분석 결과</h2>
+                    <p style="color: #64748b;">영상을 업로드하고 설정을 완료한 후 '피드백 실행하기' 버튼을 눌러주세요.</p>
+                </div>
+
+                <div id="loadingState" class="loading hidden">
+                    <div class="spinner"></div>
+                    <h3 style="color: #1e3a8a; margin-bottom: 0.5rem;">AI 분석 중...</h3>
+                    <p style="color: #64748b;">Multimodal LLM이 발표 영상을 분석하고 있습니다.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div id="resultState" class="feedback-result">
+                    <h2 style="color: #1e3a8a; margin-bottom: 1.5rem;">📊 발표 분석 결과</h2>
+                    
+                    <div class="score-container">
+                        <div class="score-item">
+                            <div class="score-value">85</div>
+                            <div class="score-label">전체 점수</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-value">88</div>
+                            <div class="score-label">음성 품질</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-value">82</div>
+                            <div class="score-label">제스처</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-value">87</div>
+                            <div class="score-label">전달력</div>
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <div class="feedback-title">🎯 주요 강점</div>
+                        <div class="feedback-content">
+                            • 명확하고 안정적인 음성 톤으로 청중의 집중도를 높였습니다.<br>
+                            • 핵심 포인트에서 적절한 제스처를 활용하여 메시지를 강화했습니다.<br>
+                            • 논리적인 구조로 내용을 전개하여 이해도를 높였습니다.
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <div class="feedback-title">📈 개선 제안</div>
+                        <div class="feedback-content">
+                            • 발표 중간중간 청중과의 아이컨택을 늘려 참여도를 높이세요.<br>
+                            • 일부 구간에서 말하는 속도가 빨라 중요한 내용이 놓칠 수 있습니다.<br>
+                            • 결론 부분에서 더 강한 임팩트를 위해 목소리 톤 변화를 시도해보세요.
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <div class="feedback-title">🎤 음성 분석</div>
+                        <div class="feedback-content">
+                            평균 발화 속도: 분당 165단어 (적정 범위)<br>
+                            음성 명료도: 높음<br>
+                            감정 표현: 중간 수준 - 더 다양한 감정 표현 권장
+                        </div>
+                    </div>
+
+                    <div class="feedback-section">
+                        <div class="feedback-title">🤲 제스처 분석</div>
+                        <div class="feedback-content">
+                            손동작 활용도: 양호<br>
+                            자세 안정성: 우수<br>
+                            시선 처리: 개선 필요 - 카메라를 더 자주 응시하세요
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFile = null;
+
+        // 파일 입력 이벤트
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+        // 드래그 앤 드롭 이벤트
+        const uploadArea = document.querySelector('.upload-area');
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+
+        // 라디오 버튼 이벤트
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.radio-item').forEach(item => item.classList.remove('selected'));
+                this.closest('.radio-item').classList.add('selected');
+            });
+        });
+
+        // 체크박스 이벤트
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    this.closest('.checkbox-item').classList.add('checked');
+                } else {
+                    this.closest('.checkbox-item').classList.remove('checked');
+                }
+            });
+        });
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                displayUploadedFile(file);
+            }
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const file = event.dataTransfer.files[0];
+            if (file && file.type.startsWith('video/')) {
+                displayUploadedFile(file);
+            }
+        }
+
+        function displayUploadedFile(file) {
+            uploadedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            document.getElementById('uploadedFile').classList.remove('hidden');
+            uploadArea.style.display = 'none';
+        }
+
+        function removeFile() {
+            uploadedFile = null;
+            document.getElementById('uploadedFile').classList.add('hidden');
+            uploadArea.style.display = 'block';
+            document.getElementById('fileInput').value = '';
+        }
+
+        function startAnalysis() {
+            if (!uploadedFile) {
+                alert('먼저 발표 영상을 업로드해주세요.');
+                return;
+            }
+
+            // 상태 변경
+            document.getElementById('initialState').classList.add('hidden');
+            document.getElementById('resultState').classList.remove('show');
+            document.getElementById('loadingState').classList.remove('hidden');
+
+            // 버튼 비활성화
+            document.querySelector('.execute-btn').disabled = true;
+            document.querySelector('.execute-btn').textContent = '분석 중...';
+
+            // 진행바 애니메이션
+            let progress = 0;
+            const progressFill = document.getElementById('progressFill');
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+                progressFill.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    showResults();
+                }
+            }, 200);
+        }
+
+        function showResults() {
+            setTimeout(() => {
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('resultState').classList.add('show');
+                
+                // 버튼 복원
+                document.querySelector('.execute-btn').disabled = false;
+                document.querySelector('.execute-btn').textContent = '피드백 실행하기';
+            }, 500);
+        }
+
+        // 초기 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            // 초기 체크박스 상태 설정
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                checkbox.closest('.checkbox-item').classList.add('checked');
+            });
+        });
+    </script>
+</body>
+</html>
