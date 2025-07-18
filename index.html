@@ -322,6 +322,33 @@
             border-radius: 3px;
             transition: width 0.5s ease;
         }
+
+        .footer {
+            background: #1f2937; /* 어두운 네이비 그레이 */
+            color: #f9fafb; /* 밝은 글씨 */
+            padding: 1rem 2rem;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 3rem;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .footer-left, .footer-right {
+            flex: 1;
+            min-width: 250px;
+        }
+        
     </style>
 </head>
 <body>
@@ -603,5 +630,15 @@
             });
         });
     </script>
+    <footer class="footer">
+    <div class="footer-content">
+        <div class="footer-left">
+            Powered by <strong>SK A.X Private LLM</strong>
+        </div>
+        <div class="footer-right">
+            🔒 본 서비스는 내부망 기반에서 운영되며, 사용자의 모든 데이터는 SK하이닉스의 보안 정책에 따라 안전하게 보호됩니다.
+        </div>
+    </div>
+</footer>
 </body>
 </html>
